@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a">
+
+    <title>Silent Routine</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --text-color: #f8fafc;
+            --work-color: #3b82f6;
+            --rest-color: #10b981;
+            --accent-color: #6366f1;
+            --danger-color: #ef4444;
+            --card-bg: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .app-section {
+            width: 100%;
+            max-width: 500px;
+            padding: 20px 20px 100px 20px;
+            /* Padding bottom for nav bar */
+            display: none;
+            /* Hidden by default, toggled via JS */
+        }
+
+        .app-section.active {
+            display: block;
+        }
+
+        .container {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            width: 100%;
+        }
+
+        /* --- BOTTOM NAVIGATION --- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #1e293b;
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 15px 0 25px 0;
+            /* Extra padding for phone home bars */
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.6);
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: transparent;
+            color: #64748b;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .nav-btn.active {
+            color: var(--work-color);
+        }
+
+        /* --- GENERAL BUTTONS --- */
+        .btn {
+            padding: 16px 20px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            touch-action: manipulation;
+        }
+
+        .btn-primary {
+            background-color: var(--work-color);
+            color: white;
+            padding: 18px 20px;
+            font-size: 1.2rem;
+        }
+
+        .btn-secondary {
+            background-color: #475569;
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-outline-danger {
+            background-color: transparent;
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+            margin-top: 10px;
+        }
+
+        /* --- WORKOUT TAB STYLES --- */
+        #playlist-view {
+            display: block;
+        }
+
+        #playlist-view h2 {
+            margin-top: 0;
+            font-size: 1.6rem;
+            color: var(--work-color);
+        }
+
+        .playlist-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .playlist-list li {
+            background: rgba(255, 255, 255, 0.05);
+            margin-bottom: 10px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            border-left: 4px solid transparent;
+        }
+
+        .track-num {
+            color: #94a3b8;
+            margin-right: 12px;
+            font-weight: bold;
+        }
+
+        /* Skincare */
+        .skincare-section {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .skincare-section h3 {
+            margin-top: 0;
+            color: var(--rest-color);
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+
+        .skincare-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .skincare-list li {
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            color: #cbd5e1;
+        }
+
+        .skincare-list input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            margin-top: 2px;
+            accent-color: var(--rest-color);
+            flex-shrink: 0;
+        }
+
+        .check-text strong {
+            color: #f8fafc;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        /* Timer View */
+        #timer-view {
+            display: none;
+            text-align: center;
+            width: 100%;
+        }
+
+        #status {
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            font-weight: 700;
+            color: var(--work-color);
+        }
+
+        #timer {
+            font-size: 5.5rem;
+            font-weight: 800;
+            margin: 5px 0;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+        }
+
+        #exercise-name {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin: 15px 0 10px 0;
+            min-height: 2.5rem;
+        }
+
+        /* Breathing & Ripples */
+        .breathing-container {
+            position: relative;
+            margin: 15px 0;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .breathing-box {
+            position: relative;
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid var(--accent-color);
+            padding: 15px;
+            font-size: 1rem;
+            line-height: 1.4;
+            min-height: 4.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        #breath-indicator {
+            font-weight: 800;
+            color: var(--accent-color);
+            margin-bottom: 5px;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 1.2rem;
+            transition: color 0.2s;
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            border: 3px solid white;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            pointer-events: none;
+            animation: ripple-anim 1s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+        }
+
+        @keyframes ripple-anim {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 0.8;
+            }
+
+            100% {
+                width: 300px;
+                height: 300px;
+                opacity: 0;
+            }
+        }
+
+        #next-up {
+            font-size: 0.95rem;
+            color: #94a3b8;
+            margin-bottom: 25px;
+            min-height: 1.5rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        /* Shared Progress Bar */
+        .progress-container {
+            width: 100%;
+            background: #334155;
+            height: 8px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--work-color);
+            width: 0%;
+            transition: width 0.5s ease-out, background-color 0.3s;
+        }
+
+        /* --- DIET TAB STYLES --- */
+        .diet-header {
+            margin-top: 0;
+            color: var(--work-color);
+            text-align: center;
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+        }
+
+        .toggle-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 25px;
+            gap: 15px;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--work-color);
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--accent-color);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+
+        .active-mode {
+            color: var(--text-color);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px 5px;
+            border-radius: 12px;
+        }
+
+        .stat-title {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+        }
+
+        #remaining {
+            color: var(--rest-color);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        input::placeholder {
+            color: #64748b;
+        }
+
+        .quick-add-title {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .chips-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .chip {
+            background: rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: 0.2s;
+        }
+
+        .chip:hover,
+        .chip:active {
+            border-color: var(--work-color);
+            background: rgba(59, 130, 246, 0.2);
+            color: white;
+        }
+
+        @media (max-width: 480px) {
+            .app-section {
+                padding: 0 0 100px 0;
+            }
+
+            .container {
+                border-radius: 0;
+                min-height: calc(100vh - 80px);
+                box-shadow: none;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+
+            #timer {
+                font-size: 4.5rem;
+            }
+
+            .breathing-box {
+                font-size: 0.95rem;
+            }
+
+            .stat-value {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="workout-section" class="app-section active">
+        <div class="container">
+            <div id="playlist-view">
+                <h2>Silent Circuit</h2>
+                <p style="color: #94a3b8; margin-top: -10px;">4 Rounds • 45s Work / 15s Rest</p>
+
+                <ul class="playlist-list" id="playlist-container"></ul>
+
+                <div class="skincare-section">
+                    <h3>✨ Post-Workout Skincare</h3>
+                    <ul class="skincare-list">
+                        <li><input type="checkbox" id="step1"><label for="step1" class="check-text"><strong>1. Cleansing
+                                    Water</strong></label></li>
+                        <li><input type="checkbox" id="step2"><label for="step2" class="check-text"><strong>2. Gentle
+                                    Face Wash</strong></label></li>
+                        <li><input type="checkbox" id="step3"><label for="step3" class="check-text"><strong>3. Watsons
+                                    Strawberry Lotion (Body)</strong></label></li>
+                        <li><input type="checkbox" id="step4"><label for="step4" class="check-text"><strong>4. L'Oreal
+                                    Facial Lotion (Face)</strong></label></li>
+                    </ul>
+                </div>
+
+                <button class="btn btn-primary" id="play-circuit-btn">▶ Play Circuit</button>
+            </div>
+
+            <div id="timer-view">
+                <div class="progress-container">
+                    <div id="workout-progress-bar" class="progress-bar-fill"></div>
+                </div>
+                <div id="status">WORK</div>
+                <div id="timer">00:45</div>
+                <div id="exercise-name">Exercise Name</div>
+
+                <div class="breathing-container" id="ripple-zone">
+                    <div class="breathing-box">
+                        <span id="breath-indicator">INHALE</span>
+                        <span id="breathing-cue">Breathing instructions...</span>
+                    </div>
+                </div>
+
+                <div id="next-up">Next: Rest</div>
+
+                <div class="controls">
+                    <button class="btn btn-secondary" id="pause-btn">Pause</button>
+                    <button class="btn btn-danger" id="reset-workout-btn">Stop</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="diet-section" class="app-section">
+        <div class="container">
+            <h2 class="diet-header">Deficit Tracker</h2>
+
+            <div class="toggle-container">
+                <span id="label-normal" class="active-mode">Normal (1,800)</span>
+                <label class="switch">
+                    <input type="checkbox" id="mode-toggle">
+                    <span class="slider"></span>
+                </label>
+                <span id="label-cheat">Cheat Day (2,500)</span>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-title">Limit</div>
+                    <div class="stat-value" id="limit">1800</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-title">Eaten</div>
+                    <div class="stat-value" id="consumed">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-title" id="remaining-label">Remaining</div>
+                    <div class="stat-value" id="remaining">1800</div>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div id="diet-progress-bar" class="progress-bar-fill"></div>
+            </div>
+
+            <div class="quick-add-title">Quick Add Macros</div>
+            <div class="chips-container">
+                <div class="chip" onclick="quickAdd('Juice', 120)">+ Juice (120)</div>
+                <div class="chip" onclick="quickAdd('Rice & Egg', 350)">+ Rice/Egg (350)</div>
+                <div class="chip" onclick="quickAdd('Pork Neck', 600)">+ Pork Neck (600)</div>
+                <div class="chip" onclick="quickAdd('Heavy Hotpot', 1200)">+ Heavy Hotpot (1200)</div>
+            </div>
+
+            <div class="input-group">
+                <input type="text" id="meal-name" placeholder="Meal Name (e.g. Beef Pad Kra Pao)">
+                <input type="number" id="meal-cals" placeholder="Calories" inputmode="numeric">
+                <button class="btn btn-primary" onclick="addCalories()">Log Meal</button>
+            </div>
+
+            <button class="btn btn-outline-danger" onclick="resetDietDay()">Reset Day</button>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <button class="nav-btn active" id="nav-workout" onclick="switchTab('workout')">
+            <span style="font-size: 1.5rem;">💪</span> Workout
+        </button>
+        <button class="nav-btn" id="nav-diet" onclick="switchTab('diet')">
+            <span style="font-size: 1.5rem;">🥩</span> Diet
+        </button>
+    </nav>
+
+    <script>
+        // --- NAVIGATION LOGIC ---
+        function switchTab(tab) {
+            document.getElementById('workout-section').classList.remove('active');
+            document.getElementById('diet-section').classList.remove('active');
+            document.getElementById('nav-workout').classList.remove('active');
+            document.getElementById('nav-diet').classList.remove('active');
+
+            if (tab === 'workout') {
+                document.getElementById('workout-section').classList.add('active');
+                document.getElementById('nav-workout').classList.add('active');
+            } else {
+                document.getElementById('diet-section').classList.add('active');
+                document.getElementById('nav-diet').classList.add('active');
+            }
+        }
+
+        // --- WORKOUT LOGIC ---
+        const exerciseList = [
+            { name: "Slow Negative Squats", inhale: 4, exhale: 1, breathing: "for 4s as you lower down silently. EXHALE sharply as you stand up." },
+            { name: "Hollow Body Hold", inhale: 2, exhale: 2, breathing: "Keep core braced. Take SHALLOW breaths into your chest." },
+            { name: "Slow Lateral Lunges", inhale: 3, exhale: 2, breathing: "deeply as you step out and lower hips. EXHALE pushing to center." },
+            { name: "Dead Bugs", inhale: 2, exhale: 3, breathing: "slowly as you extend arm and leg. INHALE bringing them back." },
+            { name: "Plank Shoulder Taps", inhale: 1, exhale: 1, breathing: "as you lift your hand. INHALE softly placing it back." }
+        ];
+
+        const playlistContainer = document.getElementById('playlist-container');
+        exerciseList.forEach((ex, index) => {
+            let li = document.createElement('li');
+            li.innerHTML = `<span class="track-num">0${index + 1}</span> ${ex.name}`;
+            playlistContainer.appendChild(li);
+        });
+
+        let routine = [];
+        const totalRounds = 4;
+
+        for (let round = 1; round <= totalRounds; round++) {
+            exerciseList.forEach((ex, index) => {
+                routine.push({ type: "work", duration: 45, name: ex.name, breathing: ex.breathing, inhale: ex.inhale, exhale: ex.exhale });
+                if (!(round === totalRounds && index === exerciseList.length - 1)) {
+                    let nextEx = (index + 1 < exerciseList.length) ? exerciseList[index + 1].name : exerciseList[0].name;
+                    routine.push({ type: "rest", duration: 15, name: "Rest & Recover", breathing: "deeply through your nose and out through your mouth.", next: nextEx, inhale: 4, exhale: 4 });
+                }
+            });
+        }
+
+        let currentIndex = 0, timeLeft = routine[0].duration, isRunning = false, interval, timeElapsed = 0;
+        let totalTime = routine.reduce((acc, val) => acc + val.duration, 0);
+        let breathPhase = 'inhale', breathTimeLeft = 0, audioCtx;
+
+        const playlistView = document.getElementById('playlist-view'), timerView = document.getElementById('timer-view');
+        const timerDisplay = document.getElementById('timer'), statusDisplay = document.getElementById('status');
+        const exerciseDisplay = document.getElementById('exercise-name'), breathingDisplay = document.getElementById('breathing-cue');
+        const breathIndicator = document.getElementById('breath-indicator'), rippleZone = document.getElementById('ripple-zone');
+        const nextUpDisplay = document.getElementById('next-up'), workoutProgressBar = document.getElementById('workout-progress-bar');
+        const pauseBtn = document.getElementById('pause-btn');
+
+        function playTone(freq, duration = 0.2, type = "sine") {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            let osc = audioCtx.createOscillator(), gainNode = audioCtx.createGain();
+            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function createRipple(color) {
+            const circle = document.createElement('div');
+            circle.classList.add('ripple'); circle.style.borderColor = color;
+            rippleZone.appendChild(circle);
+            setTimeout(() => circle.remove(), 1000);
+        }
+
+        function triggerBreathingCue() {
+            if (breathPhase === 'inhale') {
+                breathIndicator.textContent = "↑ INHALE"; breathIndicator.style.color = "#38bdf8";
+                playTone(880, 0.15); createRipple("#38bdf8");
+            } else {
+                breathIndicator.textContent = "↓ EXHALE"; breathIndicator.style.color = "#fbbf24";
+                playTone(220, 0.15); createRipple("#fbbf24");
+            }
+        }
+
+        function updateWorkoutDOM() {
+            let mins = Math.floor(timeLeft / 60), secs = timeLeft % 60;
+            timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            let currentStep = routine[currentIndex];
+            exerciseDisplay.textContent = currentStep.name; breathingDisplay.textContent = currentStep.breathing;
+
+            if (currentStep.type === "work") {
+                statusDisplay.textContent = "WORK"; statusDisplay.style.color = "var(--work-color)";
+                workoutProgressBar.style.background = "var(--work-color)"; nextUpDisplay.textContent = `Next up: Rest`;
+            } else {
+                statusDisplay.textContent = "REST"; statusDisplay.style.color = "var(--rest-color)";
+                workoutProgressBar.style.background = "var(--rest-color)"; nextUpDisplay.textContent = `Next up: ${currentStep.next}`;
+            }
+            workoutProgressBar.style.width = `${(timeElapsed / totalTime) * 100}%`;
+        }
+
+        function tick() {
+            if (timeLeft > 0) {
+                if (breathTimeLeft <= 0) {
+                    breathPhase = (breathPhase === 'inhale') ? 'exhale' : 'inhale';
+                    breathTimeLeft = (breathPhase === 'inhale') ? routine[currentIndex].inhale : routine[currentIndex].exhale;
+                    triggerBreathingCue();
+                }
+                breathTimeLeft--; timeLeft--; timeElapsed++; updateWorkoutDOM();
+            } else {
+                currentIndex++;
+                if (currentIndex >= routine.length) {
+                    clearInterval(interval); isRunning = false;
+                    statusDisplay.textContent = "DONE"; timerDisplay.textContent = "00:00";
+                    exerciseDisplay.textContent = "Workout Complete!";
+                    breathIndicator.textContent = "GREAT JOB!";
+                    breathingDisplay.textContent = "Scroll up and hit your skincare routine.";
+                    nextUpDisplay.textContent = ""; pauseBtn.style.display = 'none'; return;
+                }
+                timeLeft = routine[currentIndex].duration;
+                playTone(440, 0.4, "square");
+                breathPhase = 'inhale'; breathTimeLeft = routine[currentIndex].inhale - 1;
+                triggerBreathingCue(); updateWorkoutDOM();
+            }
+        }
+
+        document.getElementById('play-circuit-btn').addEventListener('click', () => {
+            playlistView.style.display = 'none';
+            timerView.style.display = 'flex'; timerView.style.flexDirection = 'column';
+            pauseBtn.style.display = 'block';
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (!isRunning) {
+                if (timeLeft === routine[currentIndex].duration) {
+                    breathPhase = 'inhale'; breathTimeLeft = routine[currentIndex].inhale - 1; triggerBreathingCue();
+                }
+                updateWorkoutDOM(); isRunning = true; interval = setInterval(tick, 1000);
+            }
+        });
+
+        pauseBtn.addEventListener('click', () => {
+            if (isRunning) {
+                isRunning = false; clearInterval(interval); pauseBtn.textContent = "Resume";
+            } else {
+                isRunning = true; interval = setInterval(tick, 1000); pauseBtn.textContent = "Pause";
+                if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            }
+        });
+
+        document.getElementById('reset-workout-btn').addEventListener('click', () => {
+            isRunning = false; clearInterval(interval);
+            currentIndex = 0; timeLeft = routine[0].duration; timeElapsed = 0; breathTimeLeft = 0;
+            timerView.style.display = 'none'; playlistView.style.display = 'block'; pauseBtn.textContent = "Pause";
+            rippleZone.querySelectorAll('.ripple').forEach(el => el.remove());
+        });
+
+        // --- DIET LOGIC ---
+        let consumed = 0, isCheatDay = false;
+        const limitEl = document.getElementById('limit'), consumedEl = document.getElementById('consumed'), remainingEl = document.getElementById('remaining');
+        const dietProgressBar = document.getElementById('diet-progress-bar'), remainingLabel = document.getElementById('remaining-label');
+        const mealNameInput = document.getElementById('meal-name'), mealCalsInput = document.getElementById('meal-cals');
+
+        function updateDietUI() {
+            let limit = isCheatDay ? 2500 : 1800;
+            let remaining = limit - consumed;
+            limitEl.innerText = limit; consumedEl.innerText = consumed; remainingEl.innerText = Math.abs(remaining);
+
+            let pct = (consumed / limit) * 100;
+            if (pct > 100) pct = 100;
+            dietProgressBar.style.width = `${pct}%`;
+
+            if (remaining < 0) {
+                remainingLabel.innerText = "OVER LIMIT";
+                remainingEl.style.color = "var(--danger-color)"; dietProgressBar.style.backgroundColor = "var(--danger-color)";
+            } else {
+                remainingLabel.innerText = "REMAINING";
+                remainingEl.style.color = "var(--rest-color)"; dietProgressBar.style.backgroundColor = "var(--work-color)";
+            }
+        }
+
+        document.getElementById('mode-toggle').addEventListener('change', (e) => {
+            isCheatDay = e.target.checked;
+            if (isCheatDay) { document.getElementById('label-cheat').classList.add('active-mode'); document.getElementById('label-normal').classList.remove('active-mode'); }
+            else { document.getElementById('label-normal').classList.add('active-mode'); document.getElementById('label-cheat').classList.remove('active-mode'); }
+            updateDietUI();
+        });
+
+        function addCalories() {
+            const cals = parseInt(mealCalsInput.value);
+            if (isNaN(cals) || cals <= 0) return;
+            consumed += cals; mealNameInput.value = ""; mealCalsInput.value = ""; updateDietUI();
+        }
+
+        function quickAdd(name, cals) {
+            consumed += cals; updateDietUI();
+            mealNameInput.value = `Added: ${name}`;
+            setTimeout(() => { mealNameInput.value = ""; }, 1000);
+        }
+
+        function resetDietDay() {
+            if (confirm("Are you sure you want to reset your calories?")) { consumed = 0; updateDietUI(); }
+        }
+
+        updateDietUI();
+    </script>
+</body>
+
+</html>
